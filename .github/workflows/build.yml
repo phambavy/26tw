@@ -12,64 +12,27 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            fakeroot \
-            rsync \
-            curl \
-            perl \
-            zip \
-            unzip \
-            git \
-            libxml2 \
-            libxml2-utils \
-            xz-utils
-
       - name: Install Theos
-        run: |
-          export THEOS="$GITHUB_WORKSPACE/theos"
-          echo "THEOS=$THEOS" >> "$GITHUB_ENV"
-
-          git clone --recursive \
-            https://github.com/theos/theos.git \
-            "$THEOS"
-
-      - name: Install Theos toolchain
         env:
+          THEOS: ${{ github.workspace }}/theos
           CI: "1"
         run: |
-          export THEOS="$GITHUB_WORKSPACE/theos"
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
 
-          bash "$THEOS/bin/install-theos"
-
-      - name: Install iPhoneOS 16.5 SDK
+      - name: Check Theos
+        env:
+          THEOS: ${{ github.workspace }}/theos
         run: |
-          export THEOS="$GITHUB_WORKSPACE/theos"
-
-          rm -rf "$THEOS/sdks/iPhoneOS16.5.sdk"
-
-          curl -L \
-            https://github.com/theos/sdks/archive/refs/heads/master.zip \
-            -o sdks.zip
-
-          unzip -q sdks.zip \
-            'sdks-master/iPhoneOS16.5.sdk/*'
-
-          mv \
-            sdks-master/iPhoneOS16.5.sdk \
-            "$THEOS/sdks/iPhoneOS16.5.sdk"
-
-          rm -rf sdks.zip sdks-master
-
+          echo "THEOS=$THEOS"
+          echo "=== SDKs ==="
           ls -la "$THEOS/sdks"
+          echo "=== Clang ==="
+          "$THEOS/toolchain/linux/iphone/bin/clang" --version
 
       - name: Build package
+        env:
+          THEOS: ${{ github.workspace }}/theos
         run: |
-          export THEOS="$GITHUB_WORKSPACE/theos"
-
           make clean
           make package FINALPACKAGE=1 messages=yes
 
@@ -81,6 +44,6 @@ jobs:
       - name: Upload .deb
         uses: actions/upload-artifact@v4
         with:
-          name: deb-package
+          name: iOS26Anim-deb
           path: packages/*.deb
           if-no-files-found: error
