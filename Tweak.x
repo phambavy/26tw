@@ -104,16 +104,12 @@ static void presentGlassOverlay(void) {
 //    when constructing the spring animators that drive the morph.
 %hook SBFluidBehaviorSettings
 - (double)response {
-    double v = %orig;
     // Only override the "app transition" presets — leave dock / folder alone.
     // Heuristic: SpringBoard's app-transition preset uses response ~0.5–0.6.
     return gIsOpening ? kOpenResponse : kCloseResponse;
-    return v;
 }
 - (double)dampingRatio {
-    double v = %orig;
     return gIsOpening ? kOpenDamping : kCloseDamping;
-    return v;
 }
 %end
 
@@ -151,16 +147,12 @@ static void presentGlassOverlay(void) {
 
 // 6. Smooth the corner-radius morph during the open animation. iOS 26's
 //    "glass" look keeps a rounder corner radius almost all the way through.
-%hook SBIconView
-- (void)_setHighlighted:(BOOL)highlighted forTouch:(id)touch { %orig; }
-%end
-
 %hook SBAppLaunchAnimator
 - (void)_configurePresentationAnimation {
     %orig;
     // After SpringBoard sets up its layers, bump the icon-view's
     // corner radius so the morph holds the rounded shape longer.
-UIView *iconView = [(NSObject *)self valueForKey:@"iconView"];
+    UIView *iconView = [(NSObject *)self valueForKey:@"iconView"];
     if (iconView) {
         iconView.layer.cornerCurve = kCACornerCurveContinuous;
     }

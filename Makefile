@@ -1,6 +1,6 @@
 TARGET := iphone:clang:16.5:14.0
 INSTALL_TARGET_PROCESSES = SpringBoard
-ARCHS = arm64 arm64e
+ARCHS = arm64
 
 # RootHide / Dopamine rootless tweaks
 THEOS_PACKAGE_SCHEME = rootless
